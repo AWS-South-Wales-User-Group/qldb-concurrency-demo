@@ -17,26 +17,24 @@ const createLicence = async () => {
           // Check if the record already exists assuming email unique for demo
           const recordsReturned = await checkEmailUnique(txn, email);
     
-          if (recordsReturned === 0) {
+            if (recordsReturned === 0) {
 
-            const recordDoc = [{name, email, telephone}]
-            // Create the record. This returns the unique document ID in an array as the result set
-            const result = await createRecord(txn, recordDoc);
-    
-            const docIdArray = result.getResultList()
-            const docId = docIdArray[0].get("documentId").stringValue();
-            // Update the record to add the document ID as the GUID in the payload
+                const recordDoc = [{name, email, telephone}]
+                // Create the record. This returns the unique document ID in an array as the result set
+                const result = await createRecord(txn, recordDoc);
+        
+                const docIdArray = result.getResultList()
+                const docId = docIdArray[0].get("documentId").stringValue();
+                // Update the record to add the document ID as the GUID in the payload
+                await addGuid(txn, docId, email);
 
-            console.log('docId: ' + docId + ' email: ' + email);
-            await addGuid(txn, docId, email);
-
-        } else {
-            throw error(`Licence record with email ${email} already exists. No new record created`);
-        }
+            } else {
+    //            throw error(`Licence record with email ${email} already exists. No new record created`);
+            }
         },() => console.log("Retrying due to OCC conflict..."));
     
     } catch(err) {
- //       console.log(err);
+        console.log(err);
     }
  
 };
