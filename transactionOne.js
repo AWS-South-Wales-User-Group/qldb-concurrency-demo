@@ -56,29 +56,31 @@ function sleep(milliseconds) {
 
 // helper function to check if the email address is already registered
 async function checkEmailUnique(txn, email) {
-    Log.debug("In checkEmailUnique function");
+    console.log("In checkEmailUnique function");
     const query = `SELECT email FROM Concurrency AS WHERE email = ?`;
     let recordsReturned;
     await txn.execute(query, email).then((result) => {
         recordsReturned = result.getResultList().length;
-        recordsReturned === 0 ? Log.debug(`No records found for ${email}`) : Log.debug(`Record already exists for ${email}`);
+        recordsReturned === 0 ? console.log(`No records found for ${email}`) : console.log(`Record already exists for ${email}`);
     });
     return recordsReturned;
 }
 
 // helper function to create a new licence record
 async function createRecord(txn, recordDoc) {
-    Log.debug("In the createRecord function");
+    console.log("In the createRecord function");
     const statement = `INSERT INTO Concurrency ?`;
     return await txn.execute(statement, recordDoc);
 };
   
 // helper function to add the unique ID as the GUID
 async function addGuid(txn, docId, name) {
-    Log.debug("In the addGuid function");
+    console.log("In the addGuid function");
     const statement = `UPDATE Concurrency as b SET b.guid = ? WHERE b.name = ?`;
     return await txn.execute(statement, docId, name);
 }
   
-console.log(transactionOne());
+transactionOne()
+  .then((result) => console.log(result))
+  .catch((err) => console.log(err));
 
