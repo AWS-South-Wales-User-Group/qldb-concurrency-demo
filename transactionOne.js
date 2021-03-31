@@ -1,8 +1,8 @@
 const { QldbDriver, RetryConfig } = require('amazon-qldb-driver-nodejs');
 const { getQldbDriver } = require('./helper/ConnectToLedger');
 
-const name = "Matt Lewis1";
-const email = "matt.e.lewis1@gmail.com";
+const name = "Matt";
+const email = "matt@test.com";
 const telephone = "015782456";
 
 
@@ -26,14 +26,10 @@ const createLicence = async () => {
             const docIdArray = result.getResultList()
             const docId = docIdArray[0].get("documentId").stringValue();
             // Update the record to add the document ID as the GUID in the payload
-            await addGuid(txn, docId, name);
-            licence = {
-                "GUID": docId,
-                "LicenceId": licenceId,
-                "Name": name,
-                "Email": email,
-                "Telephone": telephone 
-            };
+
+            console.log('docId: ' + docId + ' email: ' + email);
+            await addGuid(txn, docId, email);
+
         } else {
             throw new LicenceIntegrityError(400, 'Licence Integrity Error', `Licence record with email ${email} already exists. No new record created`);
         }
@@ -47,7 +43,6 @@ const createLicence = async () => {
 
 const transactionOne = async() => {
     const response = await createLicence();
-    console.log(response);
 }
 
 function sleep(milliseconds) {
@@ -57,7 +52,7 @@ function sleep(milliseconds) {
 // helper function to check if the email address is already registered
 async function checkEmailUnique(txn, email) {
     console.log("In checkEmailUnique function");
-    const query = `SELECT email FROM Concurrency AS WHERE email = ?`;
+    const query = `SELECT email FROM Concurrency WHERE email = ?`;
     let recordsReturned;
     await txn.execute(query, email).then((result) => {
         recordsReturned = result.getResultList().length;
@@ -74,10 +69,10 @@ async function createRecord(txn, recordDoc) {
 };
   
 // helper function to add the unique ID as the GUID
-async function addGuid(txn, docId, name) {
-    console.log("In the addGuid function");
-    const statement = `UPDATE Concurrency as b SET b.guid = ? WHERE b.name = ?`;
-    return await txn.execute(statement, docId, name);
+async function addGuid(txn, docId, email) {
+    console.log("In the addGuid function with docId: " + docId + ' and email: ' + email);
+    const statement = `UPDATE Concurrency as b SET b.guid = ? WHERE b.email = ?`;
+    return await txn.execute(statement, docId, email);
 }
   
 transactionOne()
