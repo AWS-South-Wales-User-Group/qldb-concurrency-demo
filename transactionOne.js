@@ -1,4 +1,5 @@
 const { QldbDriver, RetryConfig } = require('amazon-qldb-driver-nodejs');
+const { getQldbDriver } = require('./helper/ConnectToLedger');
 
 const name = "Matt Lewis1";
 const email = "matt.e.lewis1@gmail.com";
@@ -7,38 +8,41 @@ const telephone = "015782456";
 
 
 const createLicence = async () => {
-    const maxConcurrentTransactions = 10;
-    const retryLimit = 4;
-    const retryConfig = new RetryConfig(retryLimit);
 
-    const qldbDriver = new QldbDriver("qldb-concurrency", {region:"eu-west-1"}, maxConcurrentTransactions, retryConfig);
+    try {
+        const qldbDriver = getQldbDriver();
 
-    await qldbDriver.executeLambda(async (txn) => {
-
-      // Check if the record already exists assuming email unique for demo
-      const recordsReturned = await checkEmailUnique(txn, email);
-
-      if (recordsReturned === 0) {
-
-        const recordDoc = [{name, email, telephone}]
-        // Create the record. This returns the unique document ID in an array as the result set
-        const result = await createRecord(txn, recordDoc);
-
-        const docIdArray = result.getResultList()
-        const docId = docIdArray[0].get("documentId").stringValue();
-        // Update the record to add the document ID as the GUID in the payload
-        await addGuid(txn, docId, name);
-        licence = {
-            "GUID": docId,
-            "LicenceId": licenceId,
-            "Name": name,
-            "Email": email,
-            "Telephone": telephone 
-        };
-    } else {
-        throw new LicenceIntegrityError(400, 'Licence Integrity Error', `Licence record with email ${email} already exists. No new record created`);
+        await qldbDriver.executeLambda(async (txn) => {
+    
+          // Check if the record already exists assuming email unique for demo
+          const recordsReturned = await checkEmailUnique(txn, email);
+    
+          if (recordsReturned === 0) {
+    
+            const recordDoc = [{name, email, telephone}]
+            // Create the record. This returns the unique document ID in an array as the result set
+            const result = await createRecord(txn, recordDoc);
+    
+            const docIdArray = result.getResultList()
+            const docId = docIdArray[0].get("documentId").stringValue();
+            // Update the record to add the document ID as the GUID in the payload
+            await addGuid(txn, docId, name);
+            licence = {
+                "GUID": docId,
+                "LicenceId": licenceId,
+                "Name": name,
+                "Email": email,
+                "Telephone": telephone 
+            };
+        } else {
+            throw new LicenceIntegrityError(400, 'Licence Integrity Error', `Licence record with email ${email} already exists. No new record created`);
+        }
+        },() => console.log("Retrying due to OCC conflict..."));
+    
+    } catch(err) {
+        console.log(err);
     }
-    },() => console.log("Retrying due to OCC conflict..."));
+ 
 };
 
 const transactionOne = async() => {
