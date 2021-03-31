@@ -18,6 +18,9 @@ const createLicence = async () => {
           const recordsReturned = await checkEmailUnique(txn, email);
     
           if (recordsReturned === 0) {
+
+            console.log('About to pause for 10 seconds')
+            await sleep(10000);
     
             const recordDoc = [{name, email, telephone}]
             // Create the record. This returns the unique document ID in an array as the result set
@@ -31,12 +34,12 @@ const createLicence = async () => {
             await addGuid(txn, docId, email);
 
         } else {
-            throw new LicenceIntegrityError(400, 'Licence Integrity Error', `Licence record with email ${email} already exists. No new record created`);
+            throw error(`Licence record with email ${email} already exists. No new record created`);
         }
         },() => console.log("Retrying due to OCC conflict..."));
     
     } catch(err) {
-        console.log(err);
+ //       console.log(err);
     }
  
 };
@@ -45,7 +48,7 @@ const transactionOne = async() => {
     const response = await createLicence();
 }
 
-function sleep(milliseconds) {
+async function sleep(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
 
