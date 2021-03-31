@@ -2,7 +2,7 @@ const { QldbDriver, RetryConfig } = require('amazon-qldb-driver-nodejs');
 const { getQldbDriver } = require('./helper/ConnectToLedger');
 
 const name = "Matt";
-const email = "matt@test.com";
+const email = "matt3@test.com";
 const telephone = "015782456";
 
 
@@ -31,7 +31,7 @@ const createLicence = async () => {
             } else {
     //            throw error(`Licence record with email ${email} already exists. No new record created`);
             }
-        },() => console.log("Retrying due to OCC conflict..."));
+        },);
     
     } catch(err) {
         console.log(err);
@@ -50,7 +50,7 @@ async function sleep(milliseconds) {
 // helper function to check if the email address is already registered
 async function checkEmailUnique(txn, email) {
     console.log("In checkEmailUnique function");
-    const query = `SELECT email FROM Concurrency WHERE email = ?`;
+    const query = `SELECT email FROM Duplicate WHERE email = ?`;
     let recordsReturned;
     await txn.execute(query, email).then((result) => {
         recordsReturned = result.getResultList().length;
@@ -62,18 +62,18 @@ async function checkEmailUnique(txn, email) {
 // helper function to create a new licence record
 async function createRecord(txn, recordDoc) {
     console.log("In the createRecord function");
-    const statement = `INSERT INTO Concurrency ?`;
+    const statement = `INSERT INTO Duplicate ?`;
     return await txn.execute(statement, recordDoc);
 };
   
 // helper function to add the unique ID as the GUID
 async function addGuid(txn, docId, email) {
     console.log("In the addGuid function with docId: " + docId + ' and email: ' + email);
-    const statement = `UPDATE Concurrency as b SET b.guid = ? WHERE b.email = ?`;
+    const statement = `UPDATE Duplicate as b SET b.guid = ? WHERE b.email = ?`;
     return await txn.execute(statement, docId, email);
 }
   
 transactionTwo()
-  .then((result) => console.log(result))
+  .then()
   .catch((err) => console.log(err));
 
