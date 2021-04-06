@@ -14,7 +14,8 @@ function createQldbDriver(
 ) {
   //Use driver's default backoff function (and hence, no second parameter provided to RetryConfig)
   const retryConfig = new RetryConfig(4);
-  const qldbDriver = new QldbDriver(ledgerName, serviceConfigurationOptions, 10, retryConfig);
+  const maxConcurrentTransactions = 10;
+  const qldbDriver = new QldbDriver(ledgerName, serviceConfigurationOptions, maxConcurrentTransactions, retryConfig);
   return qldbDriver;
 }
 
